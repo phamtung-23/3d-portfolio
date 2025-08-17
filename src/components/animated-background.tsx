@@ -108,7 +108,7 @@ const STATES = {
   },
 };
 
-type Section = "hero" | "about" | "skills" | "projects" | "contact";
+type Section = "hero" | "about" | "projects" | "contact";
 
 const AnimatedBackground = () => {
   const { isLoading, bypassLoading } = usePreloader();
@@ -133,6 +133,9 @@ const AnimatedBackground = () => {
   };
 
   const handleMouseHover = (e: SplineEvent) => {
+    // Disable skill interactions for about section
+    if (activeSection === "about") return;
+    
     if (!splineApp || selectedSkill?.name === e.target.name) return;
 
     if (e.target.name === "body" || e.target.name === "platform") {
@@ -151,10 +154,13 @@ const AnimatedBackground = () => {
 
   // handle keyboard press interaction
   useEffect(() => {
+    // Disable skill interactions for about section
+    if (activeSection === "about") return;
+    
     if (!selectedSkill || !splineApp) return;
     splineApp.setVariable("heading", selectedSkill.label);
     splineApp.setVariable("desc", selectedSkill.shortDescription);
-  }, [selectedSkill]);
+  }, [selectedSkill, splineApp, activeSection]);
 
   // handle keyboard heading and desc visibility
   useEffect(() => {
@@ -170,34 +176,18 @@ const AnimatedBackground = () => {
       !textMobileLight
     )
       return;
-    if (activeSection !== "skills") {
+    if (activeSection !== "about") {
       textDesktopDark.visible = false;
       textDesktopLight.visible = false;
       textMobileDark.visible = false;
       textMobileLight.visible = false;
       return;
     }
-    if (theme === "dark" && !isMobile) {
-      textDesktopDark.visible = false;
-      textDesktopLight.visible = true;
-      textMobileDark.visible = false;
-      textMobileLight.visible = false;
-    } else if (theme === "dark" && isMobile) {
-      textDesktopDark.visible = false;
-      textDesktopLight.visible = false;
-      textMobileDark.visible = false;
-      textMobileLight.visible = true;
-    } else if (theme === "light" && !isMobile) {
-      textDesktopDark.visible = true;
-      textDesktopLight.visible = false;
-      textMobileDark.visible = false;
-      textMobileLight.visible = false;
-    } else {
-      textDesktopDark.visible = false;
-      textDesktopLight.visible = false;
-      textMobileDark.visible = true;
-      textMobileLight.visible = false;
-    }
+    // Hide all text in about section since we don't want skill interactions
+    textDesktopDark.visible = false;
+    textDesktopLight.visible = false;
+    textMobileDark.visible = false;
+    textMobileLight.visible = false;
   }, [theme, splineApp, isMobile, activeSection]);
 
   // initialize gsap animations
@@ -253,7 +243,11 @@ const AnimatedBackground = () => {
         rotateKeyboard.pause();
         teardownKeyboard.pause();
       }
-      if (activeSection === "skills") {
+      if (activeSection === "about") {
+        // Clear any skill text when in about section
+        splineApp.setVariable("heading", "");
+        splineApp.setVariable("desc", "");
+        setSelectedSkill(null);
       } else {
         splineApp.setVariable("heading", "");
         splineApp.setVariable("desc", "");
@@ -345,11 +339,17 @@ const AnimatedBackground = () => {
   const handleSplineInteractions = () => {
     if (!splineApp) return;
     splineApp.addEventListener("keyUp", (e) => {
+      // Disable skill interactions for about section
+      if (activeSection === "about") return;
+      
       if (!splineApp) return;
       splineApp.setVariable("heading", "");
       splineApp.setVariable("desc", "");
     });
     splineApp.addEventListener("keyDown", (e) => {
+      // Disable skill interactions for about section
+      if (activeSection === "about") return;
+      
       if (!splineApp) return;
       const skill = SKILLS[e.target.name as SkillNames];
       if (skill) setSelectedSkill(skill);
@@ -370,23 +370,23 @@ const AnimatedBackground = () => {
     });
     gsap.timeline({
       scrollTrigger: {
-        trigger: "#skills",
+        trigger: "#about",
         start: "top 50%",
         end: "bottom bottom",
         scrub: true,
         // markers: true,
         onEnter: () => {
-          setActiveSection("skills");
+          setActiveSection("about");
           gsap.to(kbd.scale, {
-            ...keyboardStates("skills").scale,
+            ...keyboardStates("about").scale,
             duration: 1,
           });
           gsap.to(kbd.position, {
-            ...keyboardStates("skills").position,
+            ...keyboardStates("about").position,
             duration: 1,
           });
           gsap.to(kbd.rotation, {
-            ...keyboardStates("skills").rotation,
+            ...keyboardStates("about").rotation,
             duration: 1,
           });
         },
@@ -428,17 +428,17 @@ const AnimatedBackground = () => {
           });
         },
         onLeaveBack: () => {
-          setActiveSection("skills");
+          setActiveSection("about");
           gsap.to(kbd.scale, {
-            ...keyboardStates("skills").scale,
+            ...keyboardStates("about").scale,
             duration: 1,
           });
           gsap.to(kbd.position, {
-            ...keyboardStates("skills").position,
+            ...keyboardStates("about").position,
             duration: 1,
           });
           gsap.to(kbd.rotation, {
-            ...keyboardStates("skills").rotation,
+            ...keyboardStates("about").rotation,
             duration: 1,
           });
           // gsap.to(kbd.rotation, { x: 0, duration: 1 });
